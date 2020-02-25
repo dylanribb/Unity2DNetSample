@@ -5,6 +5,8 @@ This POC uses the `Unity.Networking.Transport` API to create a basic server, cli
 
 This projected was created as a basic example that isn't dependent upon and could potentially be used outside of Unity's new Entity Component System (ECS).
 
+Some of the pieces (such as the basic state machine implementation and string extension methods) were taken directly from the Unity FPS Sample: https://github.com/Unity-Technologies/FPSSample
+
 ## Status and prerequisites
 
 Current status at a glance:
