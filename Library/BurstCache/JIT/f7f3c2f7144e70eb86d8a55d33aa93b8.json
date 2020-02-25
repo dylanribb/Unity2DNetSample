@@ -1,0 +1,8 @@
+{
+  "ExternalFunctions": [
+    {
+      "Name": "#dllimport:network.bindings.bundle|network_sendmsg",
+      "FullName": "Unity.Networking.Transport.NativeBindings.network_sendmsg(long socket_handle, void* iov, int iov_len, ref Unity.Networking.Transport.network_address address, ref int errorcode)_6BE242F00ACD9276"
+    }
+  ]
+}
