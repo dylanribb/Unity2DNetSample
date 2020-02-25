@@ -1,5 +1,7 @@
 # Unity2DNetSample
-A (very) basic sample using Unity's low level Transport API for Client/Server Networking
+A (very) basic sample using Unity's low level Transport API for Client/Server Networking.
+
+This POC uses the `Unity.Networking.Transport` API to create a basic server, client, and send test data. It uses MessagePack for data serialization into a byte array, but that could easily be swapped out for other serialization schemes as needed.
 
 ## Status and prerequisites
 
