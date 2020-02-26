@@ -8,6 +8,8 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
     public static int serverPort;
 
+    private GameObject playerPrefab;
+
     private NetworkDriver driver;
 
     public class ClientInfo
@@ -16,6 +18,13 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
         public bool isReady;
 
     }
+
+    public IGameLoop WithPlayerPrefab(GameObject playerPrefab)
+    {
+        this.playerPrefab = playerPrefab;
+        return this;
+    }
+
     public bool Init(string[] args)
     {
         this.stateMachine = new StateMachine<ServerState>();
@@ -53,6 +62,9 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
         client.id = id;
         this.clients.Add(id, client);
         Debug.Log($"Added Client With ID: {id}");
+
+        this.InitPlayerObject(id);
+
         this.networkServer.SendPlayerConnectionAck(id);
         this.networkServer.NotifyPlayersOfNewConnection(id);
     }
@@ -62,9 +74,9 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
         this.clients.Remove(id);
     }
 
-    public void OnEvent(int clientId, NetworkEvent evt)
+    public void OnPlayerCommand(PlayerCommand command)
     {
-
+        this.playerCommands.Enqueue(command);
     }
 
     public void OnConnectionAck(int playerId) { }
@@ -89,6 +101,9 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
     private NetworkServer networkServer;
     private float serverStartTime;
     private Dictionary<int, ClientInfo> clients = new Dictionary<int, ClientInfo>();
+    private Dictionary<int, GameObject> players = new Dictionary<int, GameObject>();
+
+    private Queue<PlayerCommand> playerCommands;
 
     enum ServerState
     {
@@ -96,6 +111,13 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
         Loading,
         Active,
     }
+
+    private void InitPlayerObject(int playerId)
+    {
+        GameObject player = Object.Instantiate(this.playerPrefab);
+        players.Add(playerId, player);
+    }
+
     private StateMachine<ServerState> stateMachine;
 
 }

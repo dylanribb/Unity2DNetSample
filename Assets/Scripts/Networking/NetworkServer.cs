@@ -142,7 +142,7 @@ public class NetworkServer
 
     public void ReadDataStream(INetworkCallbacks loop)
     {
-        MessagePackSerializer<NetworkCommand> serializer = MessagePackSerializer.Get<NetworkCommand>();
+        MessagePackSerializer<PlayerCommand> serializer = MessagePackSerializer.Get<PlayerCommand>();
 
         List<int> disconnectedIds = new List<int>();
         DataStreamReader stream;
@@ -151,7 +151,7 @@ public class NetworkServer
 
             NetworkEvent.Type evtType;
             MemoryStream memStream;
-            NetworkCommand cmd;
+            PlayerCommand cmd;
             while ((evtType = this.driver.PopEventForConnection(pair.Value, out stream)) != NetworkEvent.Type.Empty)
             {
                 if (evtType == NetworkEvent.Type.Data)
@@ -176,7 +176,7 @@ public class NetworkServer
                     Debug.Log($"(Server) Mem Stream Length: {memStream.Length}");
                     cmd = serializer.Unpack(memStream);
 
-                    Debug.Log($"(Server) Test Message: {cmd.testMessage}");
+                    Debug.Log($"(Server) Test Message (Command Type): {cmd.Type}");
 
                     Debug.Log("(Server) Bytes Read: " + stream.GetBytesRead());
 

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
 using Unity.Collections;
@@ -62,9 +63,6 @@ public class NetworkClient
             return false;
         }
 
-        // Debug.Log($"Connection created from NetworkClient.Connect()? {this.connection.IsCreated}");
-        // Debug.Log($"Client Connection State: {this.connection.GetState(this.driver)}");
-
         return true;
     }
 
@@ -83,10 +81,6 @@ public class NetworkClient
 
         DataStreamReader stream;
         NetworkEvent.Type eventType;
-
-        // if (!this.connection.Equals(default(NetworkConnection))) {
-        //     Debug.Log($"Client Connection State: {this.connection.GetState(this.driver)}");
-        // }
 
         while ((eventType = this.connection.PopEvent(this.driver, out stream)) != NetworkEvent.Type.Empty)
         {
@@ -129,6 +123,27 @@ public class NetworkClient
         }
     }
 
+    public void SendQueuedCommands(ref Queue<PlayerCommand> playerCommands)
+    {
+        Debug.Log("Sending Queued Commands...");
+        MessagePackSerializer<PlayerCommand> serializer = MessagePackSerializer.Get<PlayerCommand>();
+
+        while (playerCommands.Count > 0)
+        {
+            PlayerCommand cmd = playerCommands.Dequeue();
+            MemoryStream memStream = new MemoryStream();
+            serializer.Pack(memStream, cmd);
+
+            using (NativeArray<byte> byteArray = new NativeArray<byte>(memStream.GetBuffer(), Allocator.Persistent))
+            {
+                Debug.Log($"(Client) Native Byte Array Length: {byteArray.Length}");
+                DataStreamWriter writer = this.driver.BeginSend(this.connection);
+                writer.WriteBytes(byteArray);
+                this.driver.EndSend(writer);
+            }
+        }
+    }
+
     public void SendTestData()
     {
         NetworkCommand cmd = new NetworkCommand();
@@ -153,7 +168,6 @@ public class NetworkClient
             
     }
 
-    // private SocketTransport networkTransport;
     private NetworkDriver driver;
     private NetworkConnection connection;
 }

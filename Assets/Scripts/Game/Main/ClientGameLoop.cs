@@ -13,6 +13,8 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     private string gameMessage;
     private string targetServer = "127.0.0.1";
 
+    private float nextSendTime = Time.time + 0.1f;
+
     private DateTime attemptedConnectionTime;
 
     private PlayerClient localPlayer;
@@ -37,6 +39,10 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
         return true;
     }
 
+    public IGameLoop WithPlayerPrefab(GameObject playerPrefab) {
+        return this;
+    }
+
     public void OnConnect(int id)
     {
         Debug.Log("New Player Connected: " + id);
@@ -58,7 +64,9 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
 
     public void SendTest()
     {
-        this.networkClient.SendTestData();
+        //this.networkClient.SendTestData();
+        PlayerMoveCommand testCommand = (PlayerMoveCommand)new PlayerMoveCommand(Vector3.zero, Vector3.zero).WithPlayerId(this.localPlayer.playerId);
+        this.QueueCommand(testCommand);
     }
 
     public void ShutDown()
@@ -68,6 +76,14 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
 
     public void Update()
     {
+
+        if (Time.time >= this.nextSendTime && this.commandQueue.Count > 0)
+        {
+            Debug.Log("Sending Queued Commands...");
+            this.networkClient.SendQueuedCommands(ref this.commandQueue);
+            this.nextSendTime = Time.time + 0.1f;
+        }
+
         this.networkClient.Update(this);
         this.stateMachine.Update();
     }
@@ -135,5 +151,13 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
         Playing,
     }
     private StateMachine<ClientState> stateMachine;
+
+
+    public void QueueCommand(PlayerCommand cmd)
+    {
+        this.commandQueue.Enqueue(cmd);
+    }
+
+    private Queue<PlayerCommand> commandQueue = new Queue<PlayerCommand>();
 
 }

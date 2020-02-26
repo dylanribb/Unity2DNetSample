@@ -8,12 +8,15 @@ public interface IGameLoop
     void ShutDown();
 
     void SendTest();
+
+    IGameLoop WithPlayerPrefab(GameObject playerPrefab);
 }
 
 public class Game : MonoBehaviour
 {
 
     public static Game game;
+    public GameObject playerPrefab;
 
     public bool RunServer = false;
 
@@ -75,7 +78,7 @@ public class Game : MonoBehaviour
         this.RunServer = true;
 
         if (this.RunServer) {
-            this.serverLoop = new ServerGameLoop();
+            this.serverLoop = new ServerGameLoop().WithPlayerPrefab(this.playerPrefab);
             this.serverLoop.Init(null);
         }
     }

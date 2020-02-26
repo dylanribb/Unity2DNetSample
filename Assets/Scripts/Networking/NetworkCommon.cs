@@ -1,32 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Networking.Transport;
 
-public struct TransportEvent
-{
-    public enum Type
-    {
-        Data,
-        Connect,
-        Disconnect
-    }
-    public Type type;
-    public int connectionId;
-    public byte[] data;
-    public int dataSize;
-}
-
-public interface INetworkTransport
-{
-    int Connect(string ip, ushort port);
-    void Disconnect(int connectionId);
-
-    bool NextEvent(ref TransportEvent e);
-    void SendData(int connectionId, byte[] data, int sendSize);
-    void Update();
-
-    void Shutdown();
-}
-
 public interface INetworkCallbacks
 {
     void OnConnect(int clientId);

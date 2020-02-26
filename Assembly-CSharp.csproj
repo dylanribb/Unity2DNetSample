@@ -67,6 +67,8 @@
     <Compile Include="Assets\Scripts\Game\Lib\StringExtensionMethods.cs" />
     <Compile Include="Assets\Scripts\Game\Main\ClientGameLoop.cs" />
     <Compile Include="Assets\Scripts\Game\Main\Game.cs" />
+    <Compile Include="Assets\Scripts\Game\Main\Player\LocalPlayer.cs" />
+    <Compile Include="Assets\Scripts\Game\Main\Player\NetworkPlayer.cs" />
     <Compile Include="Assets\Scripts\Game\Main\Player\PlayerClient.cs" />
     <Compile Include="Assets\Scripts\Game\Main\Player\PlayerCommand.cs" />
     <Compile Include="Assets\Scripts\Game\Main\ServerGameLoop.cs" />
