@@ -9,9 +9,16 @@ Some of the pieces (such as the basic state machine implementation and string ex
 
 ## Status and prerequisites
 
+This is a major work in progress and I hope to continually update it with new features/changes and upgrade as Unity releases new versions of the Transport package.
+
 Current status at a glance:
 ```
 Unity version: 2019.3.0f6
+
+Open Items/Issues:
+- Add Basic Interactions between Local and Network GameObjects
+- Add Server Authority / Client Prediction
+- Add a "Lobby" Mechanic
 ```
 
 ## Getting the project
