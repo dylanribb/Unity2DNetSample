@@ -1,1 +1,0 @@
-/Users/dylanribb/code/2DNetSample/obj/Debug/Assembly-CSharp.csprojAssemblyReference.cache
