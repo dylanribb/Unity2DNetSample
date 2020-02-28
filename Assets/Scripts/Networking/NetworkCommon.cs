@@ -8,6 +8,7 @@ public interface INetworkCallbacks
     //void OnEvent(int clientId, NetworkEvent info);
 
     void OnConnectionAck(int clientId);
+    void OnPlayerCommand(PlayerCommand cmd);
 }
 
 public static class NetworkConfig

@@ -88,6 +88,8 @@ public class NetworkServer
 
     public void SendPlayerConnectionAck(int playerId)
     {
+        Debug.Log($"(Server) Sending Connection ACK. PlayerId: {playerId}");
+
         NetworkConnection conn;
         this.connections.TryGetValue(playerId, out conn);
 
@@ -176,9 +178,7 @@ public class NetworkServer
                     Debug.Log($"(Server) Mem Stream Length: {memStream.Length}");
                     cmd = serializer.Unpack(memStream);
 
-                    Debug.Log($"(Server) Test Message (Command Type): {cmd.Type}");
-
-                    Debug.Log("(Server) Bytes Read: " + stream.GetBytesRead());
+                    loop.OnPlayerCommand(cmd);
 
                   
                 }

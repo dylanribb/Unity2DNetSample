@@ -7,12 +7,13 @@ public enum PlayerCommandType
     Shoot = 1 << 1
 }
 
+[MessagePackKnownType("PlayerMoveCommand", typeof(PlayerMoveCommand))]
 public class PlayerCommand
 {
-    [MessagePackMemberAttribute(0)]
+    [MessagePackMember(0)]
     private PlayerCommandType type;
 
-    [MessagePackMemberAttribute(1)]
+    [MessagePackMember(1)]
     private int playerId;
 
     public PlayerCommand WithPlayerId(int playerId)
@@ -31,16 +32,22 @@ public class PlayerCommand
     {
         get { return this.type;  }
     }
+
+    public int PlayerID
+    {
+        get { return this.playerId; }
+    }
 }
 
+
 public class PlayerMoveCommand : PlayerCommand
-{
+{    
     public PlayerMoveCommand(Vector3 startingPosition, Vector3 endingPosition) {
         OfType(PlayerCommandType.Move);
         this.startingPosition = startingPosition;
         this.endingPosition = endingPosition;
     }
 
-    private Vector3 startingPosition;
-    private Vector3 endingPosition;
+    public Vector3 startingPosition;
+    public Vector3 endingPosition;
 }

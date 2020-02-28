@@ -48,6 +48,15 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
     public void Update()
     {
+        while (this.playerCommands.Count > 0)
+        {
+            PlayerCommand cmd = this.playerCommands.Dequeue();
+
+            GameObject player;
+            this.players.TryGetValue(cmd.PlayerID, out player);
+
+            player.GetComponent<NetworkPlayer>().QueueCommand(cmd);
+        }
         this.networkServer.Update(this);
     }
 
@@ -76,6 +85,7 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
     public void OnPlayerCommand(PlayerCommand command)
     {
+        Debug.Log("(Server) Received Player Command");
         this.playerCommands.Enqueue(command);
     }
 
@@ -103,7 +113,7 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
     private Dictionary<int, ClientInfo> clients = new Dictionary<int, ClientInfo>();
     private Dictionary<int, GameObject> players = new Dictionary<int, GameObject>();
 
-    private Queue<PlayerCommand> playerCommands;
+    private Queue<PlayerCommand> playerCommands = new Queue<PlayerCommand>();
 
     enum ServerState
     {

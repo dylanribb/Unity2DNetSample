@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 7521490891651842575}
   - component: {fileID: 7521490891651842572}
   - component: {fileID: 7521490891651842573}
-  - component: {fileID: 7521490891651842801}
+  - component: {fileID: 7738485142782560973}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: NetworkCube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -94,7 +94,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7521490891651842801
+--- !u!114 &7738485142782560973
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -103,7 +103,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 7521490891651842570}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58668041bb2be49d780c89fa0ad62359, type: 3}
+  m_Script: {fileID: 11500000, guid: a22615dd55113469599f4642fbf3bb58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 50

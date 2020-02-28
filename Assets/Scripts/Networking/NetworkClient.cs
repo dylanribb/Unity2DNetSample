@@ -81,6 +81,9 @@ public class NetworkClient
 
         DataStreamReader stream;
         NetworkEvent.Type eventType;
+        NetworkCommand cmd;
+        MemoryStream memStream;
+        MessagePackSerializer<NetworkCommand> serializer = MessagePackSerializer.Get<NetworkCommand>();
 
         while ((eventType = this.connection.PopEvent(this.driver, out stream)) != NetworkEvent.Type.Empty)
         {
@@ -92,17 +95,35 @@ public class NetworkClient
                 case NetworkEvent.Type.Data:
                     Debug.Log("Stream Created?: " + stream.IsCreated);
                     if (!stream.IsCreated) { break; }
-                    NetworkCommandType typeCode = (NetworkCommandType)stream.ReadInt();
-                    Debug.Log($"Command Type: {typeCode.ToString()}");
-                    if ((typeCode & NetworkCommandType.PlayerConnected) != 0)
+
+                    byte[] streamBytes = new byte[stream.Length];
+
+                    for (int i = 0; i < stream.Length; i++)
+                    {
+
+                        streamBytes[i] = stream.ReadByte();
+                    }
+
+                    Debug.Log($"(Server) Stream Byte Length: {streamBytes.Length}");
+                    memStream = new MemoryStream();
+                    memStream.Write(streamBytes, 0, streamBytes.Length);
+                    memStream.Position = 0;
+
+                    Debug.Log($"(Server) Mem Stream Length: {memStream.Length}");
+                    cmd = serializer.Unpack(memStream);
+                    Debug.Log($"Command Type: {cmd.type.ToString()}");
+
+                    if ((cmd.type & NetworkCommandType.PlayerConnected) != 0)
                     {
                         int playerId = stream.ReadInt();
                         loop.OnConnect(playerId);
                     }
 
-                    if ((typeCode & NetworkCommandType.ConnectionAck) != 0)
+                    if ((cmd.type & NetworkCommandType.ConnectionAck) != 0)
                     {
-                        int playerId = stream.ReadInt();
+
+                        int playerId = cmd.playerId;
+                        Debug.Log($"(Client) Received Connection ACK. PlayerId: {playerId}");
                         loop.OnConnectionAck(playerId);
                     }
                     break;
@@ -134,8 +155,9 @@ public class NetworkClient
             MemoryStream memStream = new MemoryStream();
             serializer.Pack(memStream, cmd);
 
-            using (NativeArray<byte> byteArray = new NativeArray<byte>(memStream.GetBuffer(), Allocator.Persistent))
+            using (NativeArray<byte> byteArray = new NativeArray<byte>(memStream.GetBuffer().Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory))
             {
+                byteArray.CopyFrom(memStream.GetBuffer());
                 Debug.Log($"(Client) Native Byte Array Length: {byteArray.Length}");
                 DataStreamWriter writer = this.driver.BeginSend(this.connection);
                 writer.WriteBytes(byteArray);
@@ -160,6 +182,7 @@ public class NetworkClient
 
         using (NativeArray<byte> byteArray = new NativeArray<byte>(strm.GetBuffer(), Allocator.Temp))
         {
+            
             Debug.Log($"(Client) Native Byte Array Length: {byteArray.Length}");
             DataStreamWriter writer = this.driver.BeginSend(this.connection);
             writer.WriteBytes(byteArray);

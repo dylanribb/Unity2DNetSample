@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
+using MsgPack.Serialization;
 
 public class ClientGameLoop : IGameLoop, INetworkCallbacks
 {
@@ -62,10 +63,14 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
 
     public void OnDisconnect(int id) { }
 
+    public void OnPlayerCommand(PlayerCommand cmd) { }
+
     public void SendTest()
     {
         //this.networkClient.SendTestData();
-        PlayerMoveCommand testCommand = (PlayerMoveCommand)new PlayerMoveCommand(Vector3.zero, Vector3.zero).WithPlayerId(this.localPlayer.playerId);
+
+        PlayerMoveCommand testCommand = (PlayerMoveCommand)new PlayerMoveCommand(Vector3.zero, Vector3.right).WithPlayerId(this.localPlayer.playerId);
+        Debug.Log($"Sending Test Command. X: {testCommand.endingPosition.x}, Y: {testCommand.endingPosition.y}");
         this.QueueCommand(testCommand);
     }
 

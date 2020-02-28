@@ -1,16 +1,16 @@
 ﻿<Properties StartupConfiguration="{CBE85B11-5B41-F5FB-4CAE-2FC01C1DFDA8}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Networking/NetworkCommon.cs">
+  <MonoDevelop.Ide.Workbench>
     <Files>
       <File FileName="Assets/Scripts/Game/Main/Player/NetworkPlayer.cs" Line="18" Column="1" />
-      <File FileName="Assets/Scripts/Game/Main/Player/LocalPlayer.cs" Line="21" Column="5" />
-      <File FileName="Assets/Scripts/Game/Main/Player/PlayerCommand.cs" Line="24" Column="6" />
-      <File FileName="Assets/Scripts/Game/Main/ClientGameLoop.cs" Line="80" Column="24" />
-      <File FileName="Assets/Scripts/Game/Main/Player/PlayerClient.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/Game/Main/Game.cs" Line="81" Column="88" />
-      <File FileName="Assets/Scripts/Game/Main/ServerGameLoop.cs" Line="77" Column="33" />
-      <File FileName="Assets/Scripts/Networking/NetworkServer.cs" Line="179" Column="64" />
-      <File FileName="Assets/Scripts/Networking/NetworkClient.cs" Line="128" Column="49" />
-      <File FileName="Assets/Scripts/Networking/NetworkCommon.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Game/Main/Player/LocalPlayer.cs" />
+      <File FileName="Assets/Scripts/Game/Main/Player/PlayerCommand.cs" />
+      <File FileName="Assets/Scripts/Game/Main/ClientGameLoop.cs" Line="65" Column="54" />
+      <File FileName="Assets/Scripts/Game/Main/Player/PlayerClient.cs" />
+      <File FileName="Assets/Scripts/Game/Main/Game.cs" Line="14" Column="45" />
+      <File FileName="Assets/Scripts/Game/Main/ServerGameLoop.cs" Line="75" Column="6" />
+      <File FileName="Assets/Scripts/Networking/NetworkServer.cs" Line="181" Column="19" />
+      <File FileName="Assets/Scripts/Networking/NetworkClient.cs" Line="137" Column="61" />
+      <File FileName="Assets/Scripts/Networking/NetworkCommon.cs" Line="11" Column="45" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -25,7 +25,7 @@
                   </Node>
                 </Node>
                 <Node name="Networking" expanded="True">
-                  <Node name="NetworkCommon.cs" selected="True" />
+                  <Node name="NetworkClient.cs" selected="True" />
                 </Node>
               </Node>
             </Node>
@@ -36,7 +36,7 @@
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="92440dde-6898-41e6-a7f4-2578316f2ad1" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="508de6b3-a4f7-4e6c-980b-9b446df7f07a" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

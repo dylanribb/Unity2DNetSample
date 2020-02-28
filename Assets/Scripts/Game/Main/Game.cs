@@ -10,6 +10,8 @@ public interface IGameLoop
     void SendTest();
 
     IGameLoop WithPlayerPrefab(GameObject playerPrefab);
+
+    void OnPlayerCommand(PlayerCommand cmd);
 }
 
 public class Game : MonoBehaviour
