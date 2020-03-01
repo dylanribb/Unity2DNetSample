@@ -22,8 +22,10 @@ public class Game : MonoBehaviour
 
     public bool RunServer = false;
 
-    private IGameLoop serverLoop;
-    private IGameLoop clientLoop;
+    public GameObject localPlayer;
+
+    private ServerGameLoop serverLoop;
+    private ClientGameLoop clientLoop;
 
     public void Update()
     {
@@ -54,7 +56,8 @@ public class Game : MonoBehaviour
     {
         if (this.clientLoop == null)
         {
-            this.clientLoop = new ClientGameLoop();
+            this.clientLoop = new ClientGameLoop() as ClientGameLoop;
+            this.clientLoop.localPlayer = this.localPlayer;
             this.clientLoop.Init(null);
         }
         else
@@ -80,7 +83,7 @@ public class Game : MonoBehaviour
         this.RunServer = true;
 
         if (this.RunServer) {
-            this.serverLoop = new ServerGameLoop().WithPlayerPrefab(this.playerPrefab);
+            this.serverLoop = new ServerGameLoop().WithPlayerPrefab(this.playerPrefab) as ServerGameLoop;
             this.serverLoop.Init(null);
         }
     }

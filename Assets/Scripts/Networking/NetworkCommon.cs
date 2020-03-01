@@ -11,6 +11,12 @@ public interface INetworkCallbacks
     void OnPlayerCommand(PlayerCommand cmd);
 }
 
+public interface ISerializableCommand
+{
+    void SerializeToStream(ref DataStreamWriter writer);
+    void DeserializeFromStream(DataStreamReader stream);
+}
+
 public static class NetworkConfig
 {
     public const int defaultServerPort = 7050;
@@ -20,20 +26,20 @@ public static class NetworkConfig
     public const int disconnectTimeout = 30000;
 }
 
-public enum NetworkCommandType
-{
-    PlayerConnected = 1 << 0,
+//public enum NetworkCommandType
+//{
+//    PlayerConnected = 1 << 0,
 
-    ConnectionAck = 1 << 1,
+//    ConnectionAck = 1 << 1,
 
-    PlayerCommand = 1 << 2
-}
+//    PlayerCommand = 1 << 2
+//}
 
-public struct NetworkCommand
-{
-    public int playerId;
+//public class NetworkCommand : ISerializableCommand
+//{
+//    public int playerId;
 
-    public string testMessage;
+//    public string testMessage;
 
-    public NetworkCommandType type;
-}
+//    public NetworkCommandType type;
+//}

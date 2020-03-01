@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
-using MsgPack.Serialization;
 
 public class ClientGameLoop : IGameLoop, INetworkCallbacks
 {
@@ -18,13 +17,18 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
 
     private DateTime attemptedConnectionTime;
 
-    private PlayerClient localPlayer;
-    private Dictionary<int, PlayerClient> currentPlayers;
+    //private PlayerClient localPlayer;
+    private Dictionary<int, GameObject> currentPlayers;
+
+    private int playerId;
+
+    public GameObject localPlayer;
+    public int movementSpeed = 5;
 
     public bool Init(string[] args)
     {
         Debug.Log("Starting Client Init...");
-        this.localPlayer = new PlayerClient().AsLocalPlayer();
+        //this.localPlayer = new PlayerClient().AsLocalPlayer();
         this.stateMachine = new StateMachine<ClientState>();
         // m_StateMachine.Add(ClientState.Browsing,    EnterBrowsingState,     UpdateBrowsingState,    LeaveBrowsingState);
         this.stateMachine.Add(ClientState.Connecting, EnterConnectingState, UpdateConnectingState, null);
@@ -52,12 +56,19 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     public void OnConnectionAck(int playerId)
     {
         Debug.Log("Connection Acknowledged. PlayerID: " + playerId);
-        this.localPlayer.playerId = playerId;
+        this.playerId = playerId;
         if (this.currentPlayers == null)
         {
-            this.currentPlayers = new Dictionary<int, PlayerClient>();
+            this.currentPlayers = new Dictionary<int, GameObject>();
         }
         this.currentPlayers.Add(playerId, this.localPlayer);
+
+        PlayerCommand moveCommand = new PlayerCommand()
+                                      .OfType(PlayerCommandType.Move)
+                                      .WithPlayerId(this.playerId);
+        moveCommand.endingPosition = this.localPlayer.transform.position;
+        this.QueueCommand(moveCommand);
+
         Debug.Log($"Current Players: {this.currentPlayers}");
     }
 
@@ -69,7 +80,12 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     {
         //this.networkClient.SendTestData();
 
-        PlayerMoveCommand testCommand = (PlayerMoveCommand)new PlayerMoveCommand(Vector3.zero, Vector3.right).WithPlayerId(this.localPlayer.playerId);
+        PlayerCommand testCommand = new PlayerCommand()
+                                        .OfType(PlayerCommandType.Move)
+                                        .WithPlayerId(this.playerId);
+        //testCommand.startingPosition = Vector3.zero;
+        testCommand.endingPosition = Vector3.right;
+
         Debug.Log($"Sending Test Command. X: {testCommand.endingPosition.x}, Y: {testCommand.endingPosition.y}");
         this.QueueCommand(testCommand);
     }
@@ -81,6 +97,17 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
 
     public void Update()
     {
+        Vector3 move = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
+
+        if (move != Vector3.zero)
+        {
+            this.localPlayer.transform.position += move * this.movementSpeed * Time.deltaTime;
+            PlayerCommand moveCommand = new PlayerCommand()
+                                        .OfType(PlayerCommandType.Move)
+                                        .WithPlayerId(this.playerId);
+            moveCommand.endingPosition = this.localPlayer.transform.position;
+            this.QueueCommand(moveCommand);
+        }
 
         if (Time.time >= this.nextSendTime && this.commandQueue.Count > 0)
         {

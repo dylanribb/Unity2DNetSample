@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
 using Unity.Collections;
-using MsgPack.Serialization;
 
 public class NetworkClient
 {
@@ -81,9 +80,7 @@ public class NetworkClient
 
         DataStreamReader stream;
         NetworkEvent.Type eventType;
-        NetworkCommand cmd;
-        MemoryStream memStream;
-        MessagePackSerializer<NetworkCommand> serializer = MessagePackSerializer.Get<NetworkCommand>();
+        PlayerCommand cmd;
 
         while ((eventType = this.connection.PopEvent(this.driver, out stream)) != NetworkEvent.Type.Empty)
         {
@@ -96,36 +93,24 @@ public class NetworkClient
                     Debug.Log("Stream Created?: " + stream.IsCreated);
                     if (!stream.IsCreated) { break; }
 
-                    byte[] streamBytes = new byte[stream.Length];
+                    Debug.Log($"(Server) Stream Length: {stream.Length}");
 
-                    for (int i = 0; i < stream.Length; i++)
+                    cmd = new PlayerCommand();
+                    cmd.DeserializeFromStream(stream);
+
+                    if ((cmd.Type & PlayerCommandType.PlayerConnected) != 0)
                     {
-
-                        streamBytes[i] = stream.ReadByte();
+                        loop.OnConnect(cmd.PlayerID);
                     }
 
-                    Debug.Log($"(Server) Stream Byte Length: {streamBytes.Length}");
-                    memStream = new MemoryStream();
-                    memStream.Write(streamBytes, 0, streamBytes.Length);
-                    memStream.Position = 0;
-
-                    Debug.Log($"(Server) Mem Stream Length: {memStream.Length}");
-                    cmd = serializer.Unpack(memStream);
-                    Debug.Log($"Command Type: {cmd.type.ToString()}");
-
-                    if ((cmd.type & NetworkCommandType.PlayerConnected) != 0)
-                    {
-                        int playerId = stream.ReadInt();
-                        loop.OnConnect(playerId);
-                    }
-
-                    if ((cmd.type & NetworkCommandType.ConnectionAck) != 0)
+                    if ((cmd.Type & PlayerCommandType.ConnectionAck) != 0)
                     {
 
-                        int playerId = cmd.playerId;
+                        int playerId = cmd.PlayerID;
                         Debug.Log($"(Client) Received Connection ACK. PlayerId: {playerId}");
                         loop.OnConnectionAck(playerId);
                     }
+
                     break;
                 case NetworkEvent.Type.Disconnect:
                     Debug.Log("Received Disconnect");
@@ -147,48 +132,19 @@ public class NetworkClient
     public void SendQueuedCommands(ref Queue<PlayerCommand> playerCommands)
     {
         Debug.Log("Sending Queued Commands...");
-        MessagePackSerializer<PlayerCommand> serializer = MessagePackSerializer.Get<PlayerCommand>();
+
+        if (playerCommands.Count <= 0) {
+            Debug.Log(" (Client) No Messages To Send");
+            return;
+        }
 
         while (playerCommands.Count > 0)
         {
-            PlayerCommand cmd = playerCommands.Dequeue();
-            MemoryStream memStream = new MemoryStream();
-            serializer.Pack(memStream, cmd);
-
-            using (NativeArray<byte> byteArray = new NativeArray<byte>(memStream.GetBuffer().Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory))
-            {
-                byteArray.CopyFrom(memStream.GetBuffer());
-                Debug.Log($"(Client) Native Byte Array Length: {byteArray.Length}");
-                DataStreamWriter writer = this.driver.BeginSend(this.connection);
-                writer.WriteBytes(byteArray);
-                this.driver.EndSend(writer);
-            }
-        }
-    }
-
-    public void SendTestData()
-    {
-        NetworkCommand cmd = new NetworkCommand();
-        cmd.playerId = 1;
-        cmd.testMessage = "Testing!";
-
-        MessagePackSerializer<NetworkCommand> serializer = MessagePackSerializer.Get<NetworkCommand>();
-        MemoryStream strm = new MemoryStream();
-        serializer.Pack(strm, cmd);
-
-        if (this.connection.Equals(default)) { return; }
-
-        Debug.Log($"(Client) Stream Length: {strm.Length}");
-
-        using (NativeArray<byte> byteArray = new NativeArray<byte>(strm.GetBuffer(), Allocator.Temp))
-        {
-            
-            Debug.Log($"(Client) Native Byte Array Length: {byteArray.Length}");
+            ISerializableCommand cmd = playerCommands.Dequeue();
             DataStreamWriter writer = this.driver.BeginSend(this.connection);
-            writer.WriteBytes(byteArray);
+            cmd.SerializeToStream(ref writer);
             this.driver.EndSend(writer);
         }
-            
     }
 
     private NetworkDriver driver;

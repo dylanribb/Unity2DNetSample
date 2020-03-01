@@ -23,13 +23,13 @@ public class NetworkPlayer : MonoBehaviour
     {
         if (cmd.Type == PlayerCommandType.Move)
         {
-            ProcessPlayerMoveCommand((PlayerMoveCommand)cmd);
+            ProcessPlayerMoveCommand(cmd);
         }
     }
 
-    private void ProcessPlayerMoveCommand(PlayerMoveCommand cmd)
+    private void ProcessPlayerMoveCommand(PlayerCommand cmd)
     {
-        Debug.Log($"Moving Player. New Position = X: {cmd.endingPosition.x}, Y: {cmd.endingPosition.y}");
+        Debug.Log($" (Server) Moving Player. New Position = X: {cmd.endingPosition.x}, Y: {cmd.endingPosition.y}");
         this.transform.position = cmd.endingPosition;
     }
 
