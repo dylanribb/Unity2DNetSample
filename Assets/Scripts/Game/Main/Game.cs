@@ -12,23 +12,63 @@ public interface IGameLoop
     IGameLoop WithPlayerPrefab(GameObject playerPrefab);
 
     void OnPlayerCommand(PlayerCommand cmd);
+
+    void OnReceiveSnapshot(PlayerCommand cmd);
+}
+
+public class GameTime
+{
+
+    public int TickRate
+    {
+        get { return this.tickRate; }
+        set
+        {
+            this.tickRate = value;
+            this.tickInterval = 1.0f / this.tickRate;
+        }
+    }
+
+    public float tickInterval { get; private set; }
+    public int tick;
+    public float tickDuration;
+
+    public GameTime(int tickRate)
+    {
+        this.tickRate = tickRate;
+        this.tickInterval = 1.0f / tickRate;
+        this.tick = 1;
+        this.tickDuration = 0;
+    }
+
+    private int tickRate;
 }
 
 public class Game : MonoBehaviour
 {
 
+    public static double frameTime;
     public static Game game;
     public GameObject playerPrefab;
 
     public bool RunServer = false;
 
-    public GameObject localPlayer;
+    public GameObject localPlayerPrefab;
+
 
     private ServerGameLoop serverLoop;
     private ClientGameLoop clientLoop;
 
+    public void Awake()
+    {
+        this.clockFrequency = System.Diagnostics.Stopwatch.Frequency;
+        this.clock = new System.Diagnostics.Stopwatch();
+        this.clock.Start();
+    }
+
     public void Update()
     {
+        frameTime = (double)this.clock.ElapsedTicks / this.clockFrequency;
 
         if (this.serverLoop != null) {
             this.serverLoop.Update();
@@ -43,7 +83,11 @@ public class Game : MonoBehaviour
 
     public void OnDestroy()
     {
-        this.serverLoop.ShutDown();
+        if (this.serverLoop != null)
+        {
+            this.serverLoop.ShutDown();
+        }
+        
 
         if (this.clientLoop != null)
         {
@@ -57,7 +101,8 @@ public class Game : MonoBehaviour
         if (this.clientLoop == null)
         {
             this.clientLoop = new ClientGameLoop() as ClientGameLoop;
-            this.clientLoop.localPlayer = this.localPlayer;
+            this.clientLoop.localPlayerPrefab = this.localPlayerPrefab;
+            this.clientLoop.networkPlayerPrefab = this.playerPrefab;
             this.clientLoop.Init(null);
         }
         else
@@ -87,4 +132,7 @@ public class Game : MonoBehaviour
             this.serverLoop.Init(null);
         }
     }
+
+    private System.Diagnostics.Stopwatch clock;
+    private long clockFrequency;
 }

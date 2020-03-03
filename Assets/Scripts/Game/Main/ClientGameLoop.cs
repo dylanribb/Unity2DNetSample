@@ -13,20 +13,29 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     private string gameMessage;
     private string targetServer = "127.0.0.1";
 
-    private float nextSendTime = Time.time + 0.1f;
+    private float nextSendTime = Time.time + 0.02f;
+    //private static int lastCommandId = 0;
 
     private DateTime attemptedConnectionTime;
 
     //private PlayerClient localPlayer;
     private Dictionary<int, GameObject> currentPlayers;
 
-    private int playerId;
+    private int localPlayerId;
 
+    private GameTime predictionTime;
+
+    public GameObject localPlayerPrefab;
     public GameObject localPlayer;
+    public GameObject networkPlayerPrefab;
+
     public int movementSpeed = 5;
+
+    public float frameTimeScale = 1.0f;
 
     public bool Init(string[] args)
     {
+        this.localPlayer = (GameObject)UnityEngine.Object.Instantiate(this.localPlayerPrefab);
         Debug.Log("Starting Client Init...");
         //this.localPlayer = new PlayerClient().AsLocalPlayer();
         this.stateMachine = new StateMachine<ClientState>();
@@ -51,21 +60,28 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     public void OnConnect(int id)
     {
         Debug.Log("New Player Connected: " + id);
+        GameObject player = (GameObject)UnityEngine.Object.Instantiate(this.networkPlayerPrefab);
+        this.currentPlayers.Add(id, player);
     }
 
-    public void OnConnectionAck(int playerId)
+    public void OnConnectionAck(PlayerCommand cmd)
     {
-        Debug.Log("Connection Acknowledged. PlayerID: " + playerId);
-        this.playerId = playerId;
+        this.predictionTime = new GameTime(60);
+        
+        Debug.Log("Connection Acknowledged. PlayerID: " + cmd.PlayerID);
+        this.localPlayerId = cmd.PlayerID;
         if (this.currentPlayers == null)
         {
             this.currentPlayers = new Dictionary<int, GameObject>();
         }
-        this.currentPlayers.Add(playerId, this.localPlayer);
+
+        this.currentPlayers.Add(cmd.PlayerID, this.localPlayer);
 
         PlayerCommand moveCommand = new PlayerCommand()
                                       .OfType(PlayerCommandType.Move)
-                                      .WithPlayerId(this.playerId);
+                                      .WithPlayerId(this.localPlayerId);
+
+        moveCommand.startingPosition = Vector3.zero;
         moveCommand.endingPosition = this.localPlayer.transform.position;
         this.QueueCommand(moveCommand);
 
@@ -76,13 +92,24 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
 
     public void OnPlayerCommand(PlayerCommand cmd) { }
 
+    public void OnReceiveSnapshot(PlayerCommand cmd)
+    {
+        if (cmd.PlayerID == this.localPlayerId) { return;  }
+
+        GameObject player;
+        this.currentPlayers.TryGetValue(cmd.PlayerID, out player);
+
+        if (player == null) { return; }
+        player.transform.position = cmd.currentPosition;
+    }
+
     public void SendTest()
     {
         //this.networkClient.SendTestData();
 
         PlayerCommand testCommand = new PlayerCommand()
                                         .OfType(PlayerCommandType.Move)
-                                        .WithPlayerId(this.playerId);
+                                        .WithPlayerId(this.localPlayerId);
         //testCommand.startingPosition = Vector3.zero;
         testCommand.endingPosition = Vector3.right;
 
@@ -97,6 +124,7 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
 
     public void Update()
     {
+        Vector3 startingPosition = this.localPlayer.transform.position;
         Vector3 move = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
 
         if (move != Vector3.zero)
@@ -104,7 +132,8 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
             this.localPlayer.transform.position += move * this.movementSpeed * Time.deltaTime;
             PlayerCommand moveCommand = new PlayerCommand()
                                         .OfType(PlayerCommandType.Move)
-                                        .WithPlayerId(this.playerId);
+                                        .WithPlayerId(this.localPlayerId);
+            moveCommand.startingPosition = startingPosition;
             moveCommand.endingPosition = this.localPlayer.transform.position;
             this.QueueCommand(moveCommand);
         }
@@ -113,7 +142,7 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
         {
             Debug.Log("Sending Queued Commands...");
             this.networkClient.SendQueuedCommands(ref this.commandQueue);
-            this.nextSendTime = Time.time + 0.1f;
+            this.nextSendTime = Time.time + 0.02f;
         }
 
         this.networkClient.Update(this);
@@ -190,6 +219,8 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
         this.commandQueue.Enqueue(cmd);
     }
 
+
+    private List<PlayerCommand> commands = new List<PlayerCommand>();
     private Queue<PlayerCommand> commandQueue = new Queue<PlayerCommand>();
 
 }

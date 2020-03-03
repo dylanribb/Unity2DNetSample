@@ -12,15 +12,18 @@ public class NetworkServer
 
     public class ServerInfo
     {
-        public int serverTickRate;
+        public float serverTickRate;
     }
 
     public int serverTime { get; private set; }
 
-    public NetworkServer(NetworkDriver driver)
+    public NetworkServer(NetworkDriver driver, float serverTickRate)
     {
         this.driver = driver;
-        this.serverInfo = new ServerInfo();
+        this.serverInfo = new ServerInfo
+        {
+            serverTickRate = serverTickRate
+        };
     }
 
     public void Init()
@@ -99,6 +102,7 @@ public class NetworkServer
         }
 
         PlayerCommand ackCmd = new PlayerCommand().OfType(PlayerCommandType.ConnectionAck).WithPlayerId(playerId);
+        ackCmd.serverTickRate = this.serverInfo.serverTickRate;
 
         DataStreamWriter writer = this.driver.BeginSend(conn);
         ackCmd.SerializeToStream(ref writer);
@@ -121,6 +125,22 @@ public class NetworkServer
         }   
     }
 
+    public void SendPlayerSnapshots(Queue<PlayerCommand> snapshots)
+    {
+        while (snapshots.Count > 0)
+        {
+            PlayerCommand cmd = snapshots.Dequeue();
+
+            foreach (var pair in this.connections)
+            {
+                DataStreamWriter writer = this.driver.BeginSend(pair.Value);
+                cmd.SerializeToStream(ref writer);
+                this.driver.EndSend(writer);
+            }
+        }
+     
+    }
+
     public void ReadDataStream(INetworkCallbacks loop)
     {
 
@@ -140,26 +160,7 @@ public class NetworkServer
 
                     cmd = new PlayerCommand();
                     cmd.DeserializeFromStream(stream);
-
-                    //byte[] streamBytes = new byte[stream.Length];
-
-                    //for (int i = 0; i < stream.Length; i++)
-                    //{
-                         
-                    //    streamBytes[i] = stream.ReadByte();
-                    //}
-                    
-                    //Debug.Log($"(Server) Stream Byte Length: {streamBytes.Length}");
-                    //memStream = new MemoryStream();
-                    //memStream.Write(streamBytes, 0, streamBytes.Length);
-                    //memStream.Position = 0;
-
-                    //Debug.Log($"(Server) Mem Stream Length: {memStream.Length}");
-                    //cmd = serializer.Unpack(memStream);
-
-                    loop.OnPlayerCommand(cmd);
-
-                  
+                    loop.OnPlayerCommand(cmd);                  
                 }
                 else if (evtType == NetworkEvent.Type.Disconnect)
                 {

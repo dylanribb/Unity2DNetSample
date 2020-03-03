@@ -12,6 +12,8 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
     private NetworkDriver driver;
 
+    private float nextSnapshotTime = Time.time + 0.1f;
+
     public class ClientInfo
     {
         public int id;
@@ -33,7 +35,7 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
         // this.stateMachine.Add(ServerState.Active, EnterActiveState, UpdateActiveState, LeaveActiveState);
         //this.networkTransport = new SocketTransport(NetworkConfig.defaultServerPort, serverMaxClients);
         this.driver = NetworkDriver.Create(new INetworkParameter[0]);
-        this.networkServer = new NetworkServer(this.driver);
+        this.networkServer = new NetworkServer(this.driver, 60);
 
         Debug.Log("Server Initialized...");
 
@@ -46,6 +48,8 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
     public void SendTest() { }
 
+    public void OnReceiveSnapshot(PlayerCommand cmd) { }
+
     public void Update()
     {
         while (this.playerCommands.Count > 0)
@@ -57,6 +61,18 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
             player.GetComponent<NetworkPlayer>().QueueCommand(cmd);
         }
+
+        if (Time.time >= this.nextSnapshotTime)
+        {
+           foreach (KeyValuePair<int, GameObject> playerEntry in this.players)
+            {
+                PlayerCommand snapCmd = playerEntry.Value.GetComponent<NetworkPlayer>().GetCurrentSnapshot(playerEntry.Key);
+                this.playerSnapshots.Enqueue(snapCmd);
+            }
+
+            this.networkServer.SendPlayerSnapshots(this.playerSnapshots);
+        }
+
         this.networkServer.Update(this);
     }
 
@@ -76,6 +92,8 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
         this.networkServer.SendPlayerConnectionAck(id);
         this.networkServer.NotifyPlayersOfNewConnection(id);
+
+        DebuggerController.playerCount++;
     }
 
     public void OnDisconnect(int id)
@@ -89,7 +107,7 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
         this.playerCommands.Enqueue(command);
     }
 
-    public void OnConnectionAck(int playerId) { }
+    public void OnConnectionAck(PlayerCommand cmd) { }
 
     /// <summary>
     /// Idle state, no level is loaded
@@ -114,6 +132,7 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
     private Dictionary<int, GameObject> players = new Dictionary<int, GameObject>();
 
     private Queue<PlayerCommand> playerCommands = new Queue<PlayerCommand>();
+    private Queue<PlayerCommand> playerSnapshots = new Queue<PlayerCommand>();
 
     enum ServerState
     {
@@ -130,4 +149,5 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
     private StateMachine<ServerState> stateMachine;
 
+    private float serverTickRate = 100; // tick rate in ms
 }

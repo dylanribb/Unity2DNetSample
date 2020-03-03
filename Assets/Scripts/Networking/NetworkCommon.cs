@@ -7,8 +7,9 @@ public interface INetworkCallbacks
     void OnDisconnect(int clientId);
     //void OnEvent(int clientId, NetworkEvent info);
 
-    void OnConnectionAck(int clientId);
+    void OnConnectionAck(PlayerCommand cmd);
     void OnPlayerCommand(PlayerCommand cmd);
+    void OnReceiveSnapshot(PlayerCommand cmd);
 }
 
 public interface ISerializableCommand

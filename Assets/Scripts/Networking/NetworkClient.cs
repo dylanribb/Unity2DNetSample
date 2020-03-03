@@ -108,7 +108,13 @@ public class NetworkClient
 
                         int playerId = cmd.PlayerID;
                         Debug.Log($"(Client) Received Connection ACK. PlayerId: {playerId}");
-                        loop.OnConnectionAck(playerId);
+                        loop.OnConnectionAck(cmd);
+                    }
+
+                    if ((cmd.Type & PlayerCommandType.Snapshot) != 0)
+                    {
+                        Debug.Log($"Received Snapshots");
+                        loop.OnReceiveSnapshot(cmd);
                     }
 
                     break;

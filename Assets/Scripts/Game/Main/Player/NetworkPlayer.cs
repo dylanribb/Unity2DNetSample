@@ -30,7 +30,7 @@ public class NetworkPlayer : MonoBehaviour
     private void ProcessPlayerMoveCommand(PlayerCommand cmd)
     {
         Debug.Log($" (Server) Moving Player. New Position = X: {cmd.endingPosition.x}, Y: {cmd.endingPosition.y}");
-        this.transform.position = cmd.endingPosition;
+        this.transform.position = Vector3.Lerp(cmd.startingPosition, cmd.endingPosition, 100 * Time.deltaTime);
     }
 
     public void QueueCommand(PlayerCommand cmd)
@@ -41,6 +41,17 @@ public class NetworkPlayer : MonoBehaviour
         }
 
         commands.Enqueue(cmd);
+    }
+
+    public PlayerCommand GetCurrentSnapshot(int playerId)
+    {
+        PlayerCommand cmd = new PlayerCommand()
+                                .OfType(PlayerCommandType.Snapshot)
+                                .WithPlayerId(playerId);
+
+        cmd.currentPosition = this.transform.position;
+
+        return cmd;
     }
 
     private Queue<PlayerCommand> commands;
