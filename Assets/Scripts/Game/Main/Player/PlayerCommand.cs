@@ -1,4 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
+using UnityEngine;
+using Unity.Collections;
 using Unity.Networking.Transport;
 
 public enum PlayerCommandType
@@ -20,6 +25,8 @@ public class PlayerCommand : ISerializableCommand
     public Vector3 currentPosition;
 
     public float serverTickRate;
+
+    public List<int> currentPlayers = new List<int>();
 
     public PlayerCommand()
     {
@@ -77,6 +84,14 @@ public class PlayerCommand : ISerializableCommand
         if ((type & PlayerCommandType.ConnectionAck) != 0)
         {
             writer.WritePackedFloat(this.serverTickRate, this.compressionModel);
+
+            BinaryFormatter binFormatter = new BinaryFormatter();
+            MemoryStream memStream = new MemoryStream();
+            binFormatter.Serialize(memStream, this.currentPlayers);
+
+            NativeArray<byte> playerArray = new NativeArray<byte>(memStream.ToArray(), Allocator.Temp);
+
+            writer.WriteBytes(playerArray);
         }
 
         if((type & PlayerCommandType.Snapshot) != 0)
@@ -101,6 +116,25 @@ public class PlayerCommand : ISerializableCommand
         if ((type & PlayerCommandType.ConnectionAck) != 0)
         {
             stream.ReadPackedFloat(this.compressionModel);
+
+            int bytesRead = stream.GetBytesRead();
+
+            byte[] playerByteArray = new byte[stream.Length - bytesRead];
+            for (int i = 0; i < stream.Length - bytesRead; i++)
+            {
+                playerByteArray[i] = stream.ReadByte();
+            }
+
+            //NativeArray<byte> playerBytes = new NativeArray<byte>();
+            //stream.ReadBytes(playerBytes);
+
+            BinaryFormatter binFormatter = new BinaryFormatter();
+            MemoryStream memStream = new MemoryStream();
+             //= playerBytes.ToArray();
+            memStream.Write(playerByteArray, 0, playerByteArray.Length);
+            memStream.Position = 0;
+
+            this.currentPlayers = (List<int>)binFormatter.Deserialize(memStream);
         }
 
         if ((type & PlayerCommandType.Snapshot) != 0)

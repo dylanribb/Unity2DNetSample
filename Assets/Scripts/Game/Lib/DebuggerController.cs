@@ -14,7 +14,7 @@ public class DebuggerController : MonoBehaviour
     void Update()
     {
         UnityEngine.UI.Text txt = this.GetComponentInChildren<Canvas>().GetComponentInChildren<UnityEngine.UI.Text>();
-        txt.text = playerCount.ToString();
+        txt.text = $"Total Players: {playerCount}";
     }
 
     public static int playerCount = 0;

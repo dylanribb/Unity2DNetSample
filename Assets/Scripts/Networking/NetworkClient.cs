@@ -103,6 +103,11 @@ public class NetworkClient
                         loop.OnConnect(cmd.PlayerID);
                     }
 
+                    if ((cmd.Type & PlayerCommandType.PlayerDisconnected) != 0)
+                    {
+                        loop.OnDisconnect(cmd.PlayerID);
+                    }
+
                     if ((cmd.Type & PlayerCommandType.ConnectionAck) != 0)
                     {
 

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-using Unity;
+using Unity.Networking.Transport;
+
 public interface IGameLoop
 {
     bool Init(string[] args);
@@ -64,6 +65,10 @@ public class Game : MonoBehaviour
         this.clockFrequency = System.Diagnostics.Stopwatch.Frequency;
         this.clock = new System.Diagnostics.Stopwatch();
         this.clock.Start();
+
+#if UNITY_SERVER
+        this.RunServer = true;
+#endif
     }
 
     public void Update()
@@ -99,6 +104,19 @@ public class Game : MonoBehaviour
             this.clientLoop.ShutDown();
         }
 
+    }
+
+    private void OnApplicationQuit()
+    {
+        if (this.clientLoop != null)
+        {
+            this.clientLoop.ShutDown();
+        }
+
+        if (this.serverLoop != null)
+        {
+            this.serverLoop.ShutDown();
+        }
     }
 
     public void StartClientGame()

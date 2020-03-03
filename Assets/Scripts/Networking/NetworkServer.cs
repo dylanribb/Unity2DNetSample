@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using Unity.Networking.Transport;
-using Unity.Collections;
 
 public class NetworkServer
 {
@@ -45,7 +43,7 @@ public class NetworkServer
     {
         this.driver.ScheduleUpdate().Complete();
 
-        this.CleanUpConnections(loop);
+        //this.CleanUpConnections(loop);
 
         this.AcceptNewConnections(loop);
 
@@ -73,7 +71,7 @@ public class NetworkServer
         foreach (int connectionId in connectionsToRemove)
         {
             this.connections.Remove(connectionId);
-            this.OnDisconnect(connectionId, loop);
+            //loop.OnDisconnect(connectionId);
         }
     }
 
@@ -103,6 +101,7 @@ public class NetworkServer
 
         PlayerCommand ackCmd = new PlayerCommand().OfType(PlayerCommandType.ConnectionAck).WithPlayerId(playerId);
         ackCmd.serverTickRate = this.serverInfo.serverTickRate;
+        ackCmd.currentPlayers = new List<int>(this.connections.Keys);
 
         DataStreamWriter writer = this.driver.BeginSend(conn);
         ackCmd.SerializeToStream(ref writer);
@@ -123,6 +122,20 @@ public class NetworkServer
             cmd.SerializeToStream(ref writer);
             this.driver.EndSend(writer);
         }   
+    }
+
+    public void NotifyPlayersOfDisconnectedPlayer(int playerId)
+    {
+        PlayerCommand cmd = new PlayerCommand().OfType(PlayerCommandType.PlayerDisconnected).WithPlayerId(playerId);
+
+        foreach (var pair in this.connections)
+        {
+            if (pair.Value.InternalId == playerId) { continue; }
+
+            DataStreamWriter writer = this.driver.BeginSend(pair.Value);
+            cmd.SerializeToStream(ref writer);
+            this.driver.EndSend(writer);
+        }
     }
 
     public void SendPlayerSnapshots(Queue<PlayerCommand> snapshots)
@@ -173,8 +186,10 @@ public class NetworkServer
         if (disconnectedIds.Count == 0) { return; }
         foreach (int id in disconnectedIds)
         {
-            this.connections[id] = default;
-            this.OnDisconnect(id, loop);
+            this.connections[id].Disconnect(this.driver);
+            this.connections[id].Close(this.driver);
+            this.connections.Remove(id);
+            loop.OnDisconnect(id);
         }
     }
 
@@ -194,17 +209,17 @@ public class NetworkServer
         loop.OnConnect(connectionId);
     }
 
-    private void OnDisconnect(int connectionId, INetworkCallbacks loop)
-    {
-        NetworkConnection connection;
-        if (this.connections.TryGetValue(connectionId, out connection))
-        {
+    //private void OnDisconnect(int connectionId, INetworkCallbacks loop)
+    //{
+    //    NetworkConnection connection;
+    //    if (this.connections.TryGetValue(connectionId, out connection))
+    //    {
 
-            Debug.Log(string.Format("Client {0} disconnected", connectionId));
+    //        Debug.Log(string.Format("Client {0} disconnected", connectionId));
 
-            this.connections.Remove(connectionId);
+    //        this.connections.Remove(connectionId);
 
-            loop.OnDisconnect(connectionId);
-        }
-    }
+    //        loop.OnDisconnect(connectionId);
+    //    }
+    //}
 }

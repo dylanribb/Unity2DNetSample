@@ -92,13 +92,23 @@ public class ServerGameLoop : IGameLoop, INetworkCallbacks
 
         this.networkServer.SendPlayerConnectionAck(id);
         this.networkServer.NotifyPlayersOfNewConnection(id);
-
-        DebuggerController.playerCount++;
     }
 
     public void OnDisconnect(int id)
     {
+        Debug.Log($"(Server) Disconnected Player: {id}");
         this.clients.Remove(id);
+
+        GameObject player;
+        this.players.TryGetValue(id, out player);
+
+        if (player != null)
+        {
+            Object.Destroy(player);
+        }
+        
+        this.players.Remove(id);
+        this.networkServer.NotifyPlayersOfDisconnectedPlayer(id);
     }
 
     public void OnPlayerCommand(PlayerCommand command)

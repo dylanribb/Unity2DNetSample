@@ -19,7 +19,7 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     private DateTime attemptedConnectionTime;
 
     //private PlayerClient localPlayer;
-    private Dictionary<int, GameObject> currentPlayers;
+    private Dictionary<int, GameObject> currentPlayers = new Dictionary<int, GameObject>();
 
     private int localPlayerId;
 
@@ -60,7 +60,14 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     public void OnConnect(int id)
     {
         Debug.Log("New Player Connected: " + id);
-        GameObject player = (GameObject)UnityEngine.Object.Instantiate(this.networkPlayerPrefab);
+
+
+        GameObject player;
+        this.currentPlayers.TryGetValue(id, out player);
+
+        if (player != null) { return;  }
+
+        player = (GameObject)UnityEngine.Object.Instantiate(this.networkPlayerPrefab);
         this.currentPlayers.Add(id, player);
     }
 
@@ -68,14 +75,21 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     {
         this.predictionTime = new GameTime(60);
         
-        Debug.Log("Connection Acknowledged. PlayerID: " + cmd.PlayerID);
+        Debug.Log("(Client) Connection Acknowledged. PlayerID: " + cmd.PlayerID);
         this.localPlayerId = cmd.PlayerID;
-        if (this.currentPlayers == null)
-        {
-            this.currentPlayers = new Dictionary<int, GameObject>();
-        }
 
         this.currentPlayers.Add(cmd.PlayerID, this.localPlayer);
+
+        foreach (int playerId in cmd.currentPlayers)
+        {
+            GameObject player;
+            this.currentPlayers.TryGetValue(playerId, out player);
+
+            if (player != null) { continue;  }
+
+            player = (GameObject)UnityEngine.Object.Instantiate(this.networkPlayerPrefab);
+            this.currentPlayers.Add(playerId, player);
+        }
 
         PlayerCommand moveCommand = new PlayerCommand()
                                       .OfType(PlayerCommandType.Move)
@@ -88,7 +102,16 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
         Debug.Log($"Current Players: {this.currentPlayers}");
     }
 
-    public void OnDisconnect(int id) { }
+    public void OnDisconnect(int id) {
+
+        GameObject player;
+        this.currentPlayers.TryGetValue(id, out player);
+
+        if (player == null) { return;  }
+
+        UnityEngine.Object.Destroy(player);
+        this.currentPlayers.Remove(id);
+    }
 
     public void OnPlayerCommand(PlayerCommand cmd) { }
 
@@ -100,6 +123,7 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
         this.currentPlayers.TryGetValue(cmd.PlayerID, out player);
 
         if (player == null) { return; }
+
         player.transform.position = cmd.currentPosition;
     }
 
@@ -120,6 +144,7 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
     public void ShutDown()
     {
         // this.networkTransport.Shutdown();
+        this.networkClient.Disconnect();
     }
 
     public void Update()
@@ -144,6 +169,8 @@ public class ClientGameLoop : IGameLoop, INetworkCallbacks
             this.networkClient.SendQueuedCommands(ref this.commandQueue);
             this.nextSendTime = Time.time + 0.02f;
         }
+
+        DebuggerController.playerCount = this.currentPlayers.Count;
 
         this.networkClient.Update(this);
         this.stateMachine.Update();

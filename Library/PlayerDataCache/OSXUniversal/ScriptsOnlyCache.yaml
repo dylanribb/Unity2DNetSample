@@ -546,4 +546,4 @@ ScriptsOnlyBuild:
   platform: 2
   scenePathNames:
   - Assets/Scenes/SampleScene.unity
-  playerPath: /Users/dylanribb/Desktop/2DNetServer.app
+  playerPath: /Users/dylanribb/code/2DNetSample/build/macOS/2DNetServer_macOSServer.app

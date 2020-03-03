@@ -4,7 +4,7 @@
     {
       "FullName": "Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
       "FilePath": "/Users/dylanribb/code/2DNetSample/Library/ScriptAssemblies/Unity.Burst.dll",
-      "LastWriteTime": "2020-03-03T01:00:28Z"
+      "LastWriteTime": "2020-03-03T05:47:23Z"
     },
     {
       "FullName": "netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51",
@@ -19,7 +19,7 @@
     {
       "FullName": "Unity.Networking.Transport, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
       "FilePath": "/Users/dylanribb/code/2DNetSample/Library/ScriptAssemblies/Unity.Networking.Transport.dll",
-      "LastWriteTime": "2020-03-03T01:00:30Z"
+      "LastWriteTime": "2020-03-03T05:47:24Z"
     },
     {
       "FullName": "UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
@@ -34,12 +34,12 @@
     {
       "FullName": "Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
       "FilePath": "/Users/dylanribb/code/2DNetSample/Library/ScriptAssemblies/Unity.Mathematics.dll",
-      "LastWriteTime": "2020-03-03T01:00:30Z"
+      "LastWriteTime": "2020-03-03T05:47:24Z"
     },
     {
       "FullName": "Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
       "FilePath": "/Users/dylanribb/code/2DNetSample/Library/ScriptAssemblies/Unity.Collections.dll",
-      "LastWriteTime": "2020-03-03T01:00:30Z"
+      "LastWriteTime": "2020-03-03T05:47:24Z"
     }
   ],
   "Functions": [
