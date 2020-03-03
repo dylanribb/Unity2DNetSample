@@ -733,7 +733,6 @@ MonoBehaviour:
   RunServer: 0
   localPlayerPrefab: {fileID: 7521490891651842570, guid: dde834e71e4364daab4446ca5325ec24,
     type: 3}
-  localPlayer: {fileID: 0}
 --- !u!1 &752095067
 GameObject:
   m_ObjectHideFlags: 0

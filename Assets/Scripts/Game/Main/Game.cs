@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-
+using Unity;
 public interface IGameLoop
 {
     bool Init(string[] args);
@@ -69,6 +69,11 @@ public class Game : MonoBehaviour
     public void Update()
     {
         frameTime = (double)this.clock.ElapsedTicks / this.clockFrequency;
+
+        if (this.serverLoop == null && this.RunServer)
+        {
+            this.StartServerGame();
+        }
 
         if (this.serverLoop != null) {
             this.serverLoop.Update();
